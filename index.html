@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Каталог ворот и калиток</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --iron-950:#f4f7fb; --iron-900:#ffffff; --iron-800:#eef3fb; --iron-700:#e2eaf5;
+    --brass:#2f6fed; --brass-dim:#7fa3e8; --ember:#dc2626; --ember-bright:#ef4444;
+    --cream:#16233a; --cream-dim:#5c6b80; --line:#d8e2f0; --ok:#16a34a;
+  }
+  *{box-sizing:border-box;} body{margin:0;}
+  html,body{background:var(--iron-950);color:var(--cream);font-family:'Manrope',sans-serif;min-height:100vh;}
+  h1,h2,h3,.display{font-family:'Marcellus',serif;font-weight:400;letter-spacing:.02em;color:var(--cream);}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  a{color:inherit;} button{font-family:inherit;cursor:pointer;}
+  .scrollwork{height:22px;width:100%;background-repeat:repeat-x;background-size:88px 22px;opacity:.55;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='88' height='22' viewBox='0 0 88 22'><path d='M2 11 C10 2, 18 2, 22 11 C26 20, 34 20, 38 11 C42 2, 50 2, 44 11' fill='none' stroke='%232f6fed' stroke-width='1.4'/><circle cx='2' cy='11' r='2' fill='%232f6fed'/><circle cx='44' cy='11' r='2' fill='%232f6fed'/></svg>");}
+  header{padding:28px clamp(20px,5vw,64px) 0;max-width:1240px;margin:0 auto;}
+  .topbar{display:flex;justify-content:space-between;align-items:center;padding-bottom:18px;flex-wrap:wrap;gap:12px;}
+  .brand{display:flex;flex-direction:column;}
+  .brand .mark{font-size:1.7rem;} .brand .mark b{color:var(--brass);font-style:normal;}
+  .brand .tag{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--brass-dim);margin-top:2px;}
+  nav{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .btn{border:1px solid var(--line);background:transparent;color:var(--cream);padding:10px 18px;border-radius:2px;font-size:.85rem;letter-spacing:.03em;transition:border-color .15s,color .15s;}
+  .btn:hover{border-color:var(--brass);color:var(--brass);}
+  .btn-solid{background:var(--brass);border-color:var(--brass);color:var(--iron-950);font-weight:600;}
+  .btn-solid:hover{background:var(--ember-bright);border-color:var(--ember-bright);color:var(--cream);}
+  .btn-ember{border-color:var(--ember);color:var(--ember-bright);} .btn-ember:hover{background:var(--ember);color:var(--cream);}
+  .btn-ghost{border-color:transparent;opacity:.7;} .btn-ghost:hover{opacity:1;border-color:var(--line);}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+  .btn:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{outline:2px solid var(--brass); outline-offset:2px;}
+  .lang-switch{display:flex;border:1px solid var(--line);border-radius:2px;overflow:hidden;}
+  .lang-switch button{border:none;background:transparent;color:var(--cream-dim);padding:8px 12px;font-size:.78rem;font-weight:700;letter-spacing:.04em;}
+  .lang-switch button.active{background:var(--brass);color:var(--iron-950);}
+  main{max-width:1240px;margin:0 auto;padding:8px clamp(20px,5vw,64px) 80px;}
+  .filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:18px 0 22px;}
+  .filters select, .filters input{background:var(--iron-900);border:1px solid var(--line);color:var(--cream);padding:9px 12px;border-radius:2px;font-size:.85rem;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;}
+  .card{background:var(--iron-900);border:1px solid var(--line);border-radius:3px;overflow:hidden;display:flex;flex-direction:column;transition:border-color .15s;}
+  .card:hover{border-color:var(--brass-dim);}
+  .card-photo{height:170px;background:linear-gradient(160deg,var(--iron-800),var(--iron-950));display:flex;align-items:center;justify-content:center;position:relative;border-bottom:1px solid var(--line);}
+  .card-photo img{width:100%;height:100%;object-fit:cover;}
+  .gate-glyph{width:64px;height:64px;opacity:.5;}
+  .type-tag{position:absolute;top:10px;left:10px;background:rgba(22,35,58,.88);border:1px solid var(--brass-dim);color:#fff;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:2px;}
+  .fav-btn{position:absolute;top:8px;right:8px;width:32px;height:32px;border-radius:50%;border:1px solid var(--brass-dim);background:rgba(22,35,58,.88);color:#e7edf7;font-size:1.1rem;line-height:1;display:flex;align-items:center;justify-content:center;transition:color .15s,border-color .15s;}
+  .fav-btn:hover{color:var(--brass);border-color:var(--brass);}
+  .fav-btn.active{color:var(--brass);border-color:var(--brass);}
+  .fav-btn-detail{border:1px solid var(--line);background:transparent;color:var(--cream-dim);padding:10px 18px;border-radius:2px;font-size:.85rem;}
+  .fav-btn-detail.active{color:var(--brass);border-color:var(--brass);}
+  .card-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px;flex:1;}
+  .card-title{font-size:1.05rem;}
+  .specs{display:flex;flex-wrap:wrap;gap:6px;font-size:.76rem;color:var(--cream-dim);}
+  .specs span{background:var(--iron-800);padding:3px 8px;border-radius:2px;border:1px solid var(--line);}
+  .price{font-size:1.3rem;color:var(--brass);margin-top:2px;}
+  .card-actions{display:flex;gap:8px;margin-top:auto;padding-top:6px;}
+  .card-actions .btn{flex:1;text-align:center;padding:9px 8px;font-size:.8rem;}
+  .empty{text-align:center;padding:60px 20px;color:var(--cream-dim);border:1px dashed var(--line);border-radius:3px;}
+  .panel{background:var(--iron-900);border:1px solid var(--line);border-radius:3px;padding:22px clamp(16px,4vw,28px);margin-bottom:20px;}
+  .panel h2{margin-top:0;font-size:1.3rem;}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .form-grid.one{grid-template-columns:1fr;}
+  @media (max-width:560px){.form-grid{grid-template-columns:1fr;}}
+  label{display:flex;flex-direction:column;gap:5px;font-size:.8rem;color:var(--cream-dim);}
+  input,select,textarea{background:var(--iron-950);border:1px solid var(--line);color:var(--cream);padding:10px 12px;border-radius:2px;font-size:.9rem;font-family:inherit;}
+  textarea{resize:vertical;min-height:70px;}
+  .checks{display:flex;flex-wrap:wrap;gap:10px;}
+  .checks label{flex-direction:row;align-items:center;gap:6px;font-size:.82rem;} .checks input{width:auto;}
+  .form-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;}
+  .err{color:var(--ember-bright);font-size:.82rem;margin-top:6px;}
+  .ok-msg{color:var(--ok);font-size:.82rem;margin-top:6px;}
+  table{width:100%;border-collapse:collapse;font-size:.85rem;}
+  th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);}
+  th{color:var(--brass-dim);font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;}
+  .status{padding:2px 9px;border-radius:2px;font-size:.72rem;border:1px solid var(--line);}
+  .status.new{color:var(--ember-bright);border-color:var(--ember);}
+  .status.done{color:var(--ok);border-color:var(--ok);}
+  .status.processing{color:var(--brass);border-color:var(--brass-dim);}
+  .row-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .row-actions .btn{padding:5px 10px;font-size:.75rem;}
+  .breadcrumb{font-size:.78rem;color:var(--cream-dim);margin-bottom:14px;}
+  .breadcrumb button{background:none;border:none;color:var(--brass);padding:0;font-size:.78rem;}
+  .detail-wrap{display:grid;grid-template-columns:1.1fr 1fr;gap:28px;}
+  @media (max-width:760px){.detail-wrap{grid-template-columns:1fr;}}
+  .detail-photo{border-radius:3px;overflow:hidden;border:1px solid var(--line);min-height:260px;background:linear-gradient(160deg,var(--iron-800),var(--iron-950));display:flex;align-items:center;justify-content:center;}
+  .detail-photo img{width:100%;height:100%;object-fit:cover;}
+  .pay-opts{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0;}
+  .pay-opts span{background:var(--iron-800);border:1px solid var(--brass-dim);color:var(--brass);padding:5px 11px;border-radius:2px;font-size:.78rem;}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--brass);color:var(--iron-950);padding:11px 20px;border-radius:2px;font-size:.85rem;font-weight:600;z-index:50;box-shadow:0 6px 20px rgba(0,0,0,.4);}
+  .modal-bg{position:fixed;inset:0;background:rgba(10,9,8,.72);display:flex;align-items:center;justify-content:center;padding:20px;z-index:40;}
+  .modal{background:var(--iron-900);border:1px solid var(--line);border-radius:3px;padding:24px;max-width:440px;width:100%;max-height:88vh;overflow:auto;}
+  .modal h3{margin-top:0;}
+  .close-x{float:right;background:none;border:none;color:var(--cream-dim);font-size:1.1rem;}
+  .hint{font-size:.75rem;color:var(--cream-dim);margin-top:4px;}
+  .super-badge{font-size:.7rem;color:var(--ember-bright);border:1px solid var(--ember);padding:2px 8px;border-radius:2px;margin-left:8px;}
+  .loading{text-align:center;padding:60px;color:var(--brass-dim);}
+  footer{text-align:center;padding:26px 20px 40px;color:var(--brass-dim);font-size:.75rem;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="topbar">
+    <div class="brand">
+      <div class="mark" id="brandMark"></div>
+      <div class="tag" id="brandTag"></div>
+    </div>
+    <nav id="nav"></nav>
+  </div>
+  <div class="scrollwork"></div>
+</header>
+
+<main id="app"><div class="loading">…</div></main>
+<footer id="footerText"></footer>
+
+<script>
+/* =========================================================
+   НАСТРОЙКИ — Supabase → Project Settings → API Keys
+   Сюда идёт PUBLISHABLE KEY (sb_publishable_...), НЕ secret key!
+   ========================================================= */
+const SUPABASE_URL = 'https://abqfruqdmwhvyfxvljxh.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_3CcgPMVYECq6aAb4Ik_TGw_6hVXe_Gb';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const FN_URL = SUPABASE_URL.replace('.supabase.co', '.functions.supabase.co');
+
+/* =========================================================
+   ПЕРЕВОДЫ (RU / KZ)
+   ========================================================= */
+const i18n = {
+  ru: {
+    brand_mark_b:'КОВАНЫЙ', brand_mark_rest:'КАТАЛОГ', brand_tag:'Ворота · Калитки · На заказ',
+    footer:'Каталог кованых ворот и калиток',
+    nav_catalog:'Каталог', nav_login:'Войти как админ', nav_panel_super:'Панель супер-админа',
+    nav_panel_admin:'Моя панель', nav_logout:'Выйти',
+    search_ph:'Поиск по названию...', type_all:'Все типы', type_gate:'Ворота', type_wicket:'Калитки',
+    material_all:'Любой материал', price_from:'Цена от', price_to:'Цена до',
+    days_all:'Любой срок изготовления', days_3:'До 3 дней', days_7:'До недели', days_14:'До 2 недель', days_30:'До месяца',
+    sort_new:'Сначала новые', sort_price_asc:'Дешевле сначала', sort_price_desc:'Дороже сначала', sort_fast:'Быстрее изготовление',
+    reset:'Сбросить', found:'Найдено', empty_catalog:'Пока нет объявлений под этот фильтр.<br>Попробуйте изменить или сбросить фильтры.',
+    back:'← Каталог', install_label:'Изготовление', install_ask:'уточняйте у мастера', days_short:'дн.',
+    payment_title:'Варианты оплаты', call:'Позвонить', order_btn:'Оставить заявку', copy_link:'Скопировать ссылку на объявление',
+    link_copied:'Ссылка скопирована',
+    order_modal_title:'Оставить заявку', order_name:'Ваше имя', order_name_ph:'Как к вам обращаться',
+    order_phone:'Телефон', order_comment:'Комментарий', order_comment_ph:'Например: нужен монтаж, участок такой-то',
+    order_send:'Отправить заявку', cancel:'Отмена', order_err_required:'Укажите имя и телефон', order_sent:'Заявка отправлена мастеру',
+    login_title:'Вход для администраторов', login_user:'Логин', login_pass:'Пароль', login_submit:'Войти',
+    login_err:'Неверный логин или пароль', login_err_profile:'Профиль не найден, обратитесь к супер-админу',
+    super_title:'Администраторы', super_new_user:'Логин нового админа', super_new_pass:'Пароль (мин. 6 символов)',
+    super_new_name:'Имя мастера', super_new_phone:'Телефон', super_add:'Добавить администратора',
+    super_err_required:'Заполните логин, пароль и имя', super_added:'Администратор добавлен',
+    super_list_title:'Список администраторов', super_empty:'Пока нет ни одного администратора.',
+    th_name:'Имя', th_phone:'Телефон', th_count:'Объявлений', delete:'Удалить',
+    super_all_listings:'Все объявления (все мастера)', super_all_orders:'Все заявки',
+    confirm_delete_admin:'Удалить этого администратора? Его объявления останутся в каталоге.',
+    admin_add_title:'Добавить объявление', admin_my_listings:'Мои объявления', admin_my_orders:'Заявки по моим объявлениям',
+    f_type:'Тип', f_title:'Название', f_title_ph:'например Ворота «Классик»', f_width:'Ширина, см', f_height:'Высота, см',
+    f_material:'Материал', f_material_ph:'Металл, ковка...', f_thickness:'Толщина металла, мм', f_price:'Цена, ₸',
+    f_days:'Срок изготовления, дней', f_phone:'Телефон для связи', f_photo:'Ссылка на фото (необязательно)',
+    f_desc:'Описание', f_payment_title:'Варианты оплаты', f_publish:'Опубликовать', f_save:'Сохранить изменения',
+    f_err_required:'Заполните название, размеры, материал, цену и телефон', f_saved:'Изменения сохранены', f_published:'Объявление опубликовано',
+    th_listing:'Название', th_type:'Тип', th_size:'Размер', th_price:'Цена', th_days:'Срок', th_master:'Мастер',
+    btn_link:'Ссылка', btn_edit:'Изменить', confirm_delete_listing:'Удалить объявление?',
+    th_order_listing:'Объявление', th_order_name:'Имя', th_order_phone:'Телефон', th_order_comment:'Комментарий', th_order_status:'Статус',
+    status_new:'Новая', status_processing:'В работе', status_done:'Готово', to_work:'В работу', done:'Готово',
+    empty_listings:'Пока нет объявлений.', empty_orders:'Заявок пока нет.', deleted_label:'(удалено)',
+    pay_kaspi:'Kaspi Red', pay_cash:'Наличные', pay_prepay:'Оплата до установки', pay_postpay:'Оплата после установки',
+    type_gate_s:'Ворота', type_wicket_s:'Калитка', details:'Подробнее',
+    fav_only:'Только избранное', fav_add:'В избранное', fav_remove:'Убрать из избранного',
+    fav_empty:'В избранном пока пусто.<br>Нажимайте на звёздочку у понравившихся ворот и калиток.',
+  },
+  kz: {
+    brand_mark_b:'СОҒЫЛҒАН', brand_mark_rest:'КАТАЛОГ', brand_tag:'Қақпа · Есікше · Тапсырыс бойынша',
+    footer:'Соғылған қақпа мен есікшелер каталогы',
+    nav_catalog:'Каталог', nav_login:'Әкімші ретінде кіру', nav_panel_super:'Супер-әкімші тақтасы',
+    nav_panel_admin:'Менің тақтам', nav_logout:'Шығу',
+    search_ph:'Атауы бойынша іздеу...', type_all:'Барлық түрлері', type_gate:'Қақпа', type_wicket:'Есікшелер',
+    material_all:'Кез келген материал', price_from:'Бағасы (бастап)', price_to:'Бағасы (дейін)',
+    days_all:'Кез келген дайындалу мерзімі', days_3:'3 күнге дейін', days_7:'Аптаға дейін', days_14:'2 аптаға дейін', days_30:'Айға дейін',
+    sort_new:'Алдымен жаңалары', sort_price_asc:'Арзаннан қымбатқа', sort_price_desc:'Қымбаттан арзанға', sort_fast:'Жылдам дайындалатыны',
+    reset:'Тазарту', found:'Табылды', empty_catalog:'Бұл сүзгі бойынша хабарландырулар жоқ.<br>Сүзгілерді өзгертіп немесе тазартып көріңіз.',
+    back:'← Каталог', install_label:'Дайындалу мерзімі', install_ask:'шеберден нақтылаңыз', days_short:'күн',
+    payment_title:'Төлем түрлері', call:'Қоңырау шалу', order_btn:'Өтінім қалдыру', copy_link:'Хабарландыру сілтемесін көшіру',
+    link_copied:'Сілтеме көшірілді',
+    order_modal_title:'Өтінім қалдыру', order_name:'Атыңыз', order_name_ph:'Сізге қалай хабарласу керек',
+    order_phone:'Телефон', order_comment:'Пікір', order_comment_ph:'Мысалы: орнату қажет, учаске мекенжайы',
+    order_send:'Өтінімді жіберу', cancel:'Бас тарту', order_err_required:'Атыңыз бен телефоныңызды көрсетіңіз', order_sent:'Өтінім шеберге жіберілді',
+    login_title:'Әкімшілер үшін кіру', login_user:'Логин', login_pass:'Құпия сөз', login_submit:'Кіру',
+    login_err:'Логин немесе құпия сөз қате', login_err_profile:'Профиль табылмады, супер-әкімшіге хабарласыңыз',
+    super_title:'Әкімшілер', super_new_user:'Жаңа әкімшінің логині', super_new_pass:'Құпия сөз (кемінде 6 таңба)',
+    super_new_name:'Шебердің аты', super_new_phone:'Телефон', super_add:'Әкімші қосу',
+    super_err_required:'Логин, құпия сөз және атын толтырыңыз', super_added:'Әкімші қосылды',
+    super_list_title:'Әкімшілер тізімі', super_empty:'Әзірге бірде-бір әкімші жоқ.',
+    th_name:'Аты', th_phone:'Телефон', th_count:'Хабарландыру саны', delete:'Жою',
+    super_all_listings:'Барлық хабарландырулар (барлық шеберлер)', super_all_orders:'Барлық өтінімдер',
+    confirm_delete_admin:'Бұл әкімшіні жою керек пе? Оның хабарландырулары каталогта қалады.',
+    admin_add_title:'Хабарландыру қосу', admin_my_listings:'Менің хабарландыруларым', admin_my_orders:'Менің хабарландыруларым бойынша өтінімдер',
+    f_type:'Түрі', f_title:'Атауы', f_title_ph:'мысалы Қақпа «Классик»', f_width:'Ені, см', f_height:'Биіктігі, см',
+    f_material:'Материал', f_material_ph:'Металл, соғу...', f_thickness:'Металл қалыңдығы, мм', f_price:'Бағасы, ₸',
+    f_days:'Дайындалу мерзімі, күн', f_phone:'Байланыс телефоны', f_photo:'Фото сілтемесі (міндетті емес)',
+    f_desc:'Сипаттама', f_payment_title:'Төлем түрлері', f_publish:'Жариялау', f_save:'Өзгерістерді сақтау',
+    f_err_required:'Атауын, өлшемдерін, материалын, бағасын және телефонын толтырыңыз', f_saved:'Өзгерістер сақталды', f_published:'Хабарландыру жарияланды',
+    th_listing:'Атауы', th_type:'Түрі', th_size:'Өлшемі', th_price:'Бағасы', th_days:'Мерзімі', th_master:'Шебер',
+    btn_link:'Сілтеме', btn_edit:'Өзгерту', confirm_delete_listing:'Хабарландыруды жою керек пе?',
+    th_order_listing:'Хабарландыру', th_order_name:'Аты', th_order_phone:'Телефон', th_order_comment:'Пікір', th_order_status:'Мәртебесі',
+    status_new:'Жаңа', status_processing:'Жұмыста', status_done:'Дайын', to_work:'Жұмысқа алу', done:'Дайын',
+    empty_listings:'Әзірге хабарландырулар жоқ.', empty_orders:'Әзірге өтінімдер жоқ.', deleted_label:'(жойылған)',
+    pay_kaspi:'Kaspi Red', pay_cash:'Қолма-қол ақша', pay_prepay:'Орнатуға дейін төлеу', pay_postpay:'Орнатудан кейін төлеу',
+    type_gate_s:'Қақпа', type_wicket_s:'Есікше', details:'Толығырақ',
+    fav_only:'Тек таңдаулылар', fav_add:'Таңдаулыларға қосу', fav_remove:'Таңдаулылардан алып тастау',
+    fav_empty:'Таңдаулылар әзірге бос.<br>Ұнаған қақпа немесе есікшенің жанындағы жұлдызшаны басыңыз.',
+  }
+};
+const LANG_KEY = 'vm:lang';
+let LANG = 'ru';
+try { const saved = localStorage.getItem(LANG_KEY); if (saved) LANG = saved; } catch(e){}
+function t(key){ return (i18n[LANG] && i18n[LANG][key]) ?? i18n.ru[key] ?? key; }
+function setLang(l){ LANG = l; try{ localStorage.setItem(LANG_KEY, l); }catch(e){} document.documentElement.lang = l; renderApp(); }
+
+/* ---------------- state ---------------- */
+let listings = [];
+let admins = [];
+let orders = [];
+let currentUser = null;
+let view = 'catalog';
+let activeListingId = null;
+let filters = { type:'all', material:'all', search:'', priceMin:'', priceMax:'', maxDays:'all', sort:'new', onlyFav:false };
+let toastTimer = null;
+
+/* ---------------- избранное (хранится в браузере гостя, без логина) ---------------- */
+const FAV_KEY = 'vm:favorites';
+let favorites = new Set();
+try { const raw = localStorage.getItem(FAV_KEY); if (raw) favorites = new Set(JSON.parse(raw)); } catch(e){}
+function saveFavorites(){ try{ localStorage.setItem(FAV_KEY, JSON.stringify([...favorites])); }catch(e){} }
+function toggleFavorite(id){
+  if (favorites.has(id)) favorites.delete(id); else favorites.add(id);
+  saveFavorites(); renderApp();
+}
+
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function esc(s){ return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function money(n){ return Number(n).toLocaleString('ru-RU') + ' ₸'; }
+function payLabel(code){ return { kaspi:t('pay_kaspi'), cash:t('pay_cash'), prepay:t('pay_prepay'), postpay:t('pay_postpay') }[code] || code; }
+
+function toast(msg){
+  const el=document.createElement('div'); el.className='toast'; el.textContent=msg;
+  document.body.appendChild(el); clearTimeout(toastTimer); setTimeout(()=>el.remove(),2600);
+}
+function gateGlyph(){
+  return '<svg class="gate-glyph" viewBox="0 0 64 64" fill="none" stroke="#2f6fed" stroke-width="1.6">' +
+    '<rect x="6" y="8" width="52" height="48" rx="1"/><path d="M32 8v48M6 20h52M6 44h52"/>' +
+    '<circle cx="32" cy="32" r="9"/><path d="M32 23v18M23 32h18"/></svg>';
+}
+
+/* ---------------- data loading ---------------- */
+async function loadListings(){
+  const { data, error } = await sb.from('listings').select('*').order('created_at', { ascending:false });
+  if (error){ console.error(error); listings = []; return; }
+  listings = data.map(rowToListing);
+}
+function rowToListing(r){
+  return {
+    id:r.id, adminId:r.admin_id, type:r.type, title:r.title, width:r.width, height:r.height,
+    material:r.material, thickness:r.thickness, price:r.price, installDays:r.install_days,
+    payment:r.payment||[], photoUrl:r.photo_url, description:r.description, phone:r.phone,
+    createdAt: new Date(r.created_at).getTime()
+  };
+}
+async function loadMyOrders(){
+  const { data, error } = await sb.from('orders').select('*').order('created_at', { ascending:false });
+  if (error){ console.error(error); orders=[]; return; }
+  orders = data;
+}
+async function loadAdmins(){
+  const { data, error } = await sb.from('profiles').select('*').eq('role','admin').order('created_at');
+  if (error){ console.error(error); admins=[]; return; }
+  admins = data;
+}
+async function restoreSession(){
+  const { data:{ session } } = await sb.auth.getSession();
+  if (!session) return;
+  const { data:profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
+  if (profile) currentUser = { id:profile.id, role:profile.role, name:profile.name, phone:profile.phone };
+}
+
+/* ---------------- routing ---------------- */
+function checkHash(){
+  const h = location.hash;
+  if (h.startsWith('#l=')){
+    const id = h.slice(3);
+    if (listings.find(l=>l.id===id)){ view='detail'; activeListingId=id; }
+  }
+}
+function goCatalog(){ view='catalog'; location.hash=''; renderApp(); }
+function goLogin(){ view='login'; renderApp(); }
+async function goPanel(){
+  if (currentUser.role==='super'){ view='super'; await Promise.all([loadAdmins(), loadMyOrders()]); }
+  else { view='admin'; await loadMyOrders(); }
+  renderApp();
+}
+async function logout(){ await sb.auth.signOut(); currentUser=null; goCatalog(); }
+
+/* ---------------- nav ---------------- */
+function langSwitchHtml(){
+  return '<div class="lang-switch">' +
+    '<button class="'+(LANG==='ru'?'active':'')+'" onclick="setLang(\'ru\')">РУС</button>' +
+    '<button class="'+(LANG==='kz'?'active':'')+'" onclick="setLang(\'kz\')">ҚАЗ</button>' +
+    '</div>';
+}
+function goFavorites(){ filters.onlyFav = true; view='catalog'; location.hash=''; renderApp(); }
+
+function renderNav(){
+  document.getElementById('brandMark').innerHTML = '<b>'+t('brand_mark_b')+'</b> '+t('brand_mark_rest');
+  document.getElementById('brandTag').textContent = t('brand_tag');
+  document.getElementById('footerText').textContent = t('footer');
+
+  const nav = document.getElementById('nav');
+  if (currentUser){
+    const label = currentUser.role==='super' ? t('nav_panel_super') : currentUser.name;
+    nav.innerHTML =
+      '<span style="align-self:center;font-size:.82rem;color:var(--cream-dim);">'+esc(label)+'</span>'+
+      '<button class="btn" onclick="goPanel()">'+(currentUser.role==='super'?t('nav_panel_super'):t('nav_panel_admin'))+'</button>'+
+      '<button class="btn" onclick="goCatalog()">'+t('nav_catalog')+'</button>'+
+      '<button class="btn btn-ghost" onclick="logout()">'+t('nav_logout')+'</button>'+
+      langSwitchHtml();
+  } else {
+    nav.innerHTML =
+      '<button class="btn" onclick="goCatalog()">'+t('nav_catalog')+'</button>'+
+      '<button class="btn" onclick="goFavorites()">★ '+t('fav_only')+(favorites.size?' ('+favorites.size+')':'')+'</button>'+
+      '<button class="btn btn-solid" onclick="goLogin()">'+t('nav_login')+'</button>'+
+      langSwitchHtml();
+  }
+}
+
+/* ---------------- CATALOG ---------------- */
+function visibleListings(){
+  const q = filters.search.trim().toLowerCase();
+  const min = filters.priceMin!=='' ? Number(filters.priceMin) : null;
+  const max = filters.priceMax!=='' ? Number(filters.priceMax) : null;
+  const maxDays = filters.maxDays!=='all' ? Number(filters.maxDays) : null;
+  let items = listings.filter(l=>{
+    if (filters.onlyFav && !favorites.has(l.id)) return false;
+    if (filters.type!=='all' && l.type!==filters.type) return false;
+    if (filters.material!=='all' && l.material!==filters.material) return false;
+    if (q && !l.title.toLowerCase().includes(q) && !(l.description||'').toLowerCase().includes(q)) return false;
+    if (min!==null && l.price<min) return false;
+    if (max!==null && l.price>max) return false;
+    if (maxDays!==null && Number(l.installDays||999)>maxDays) return false;
+    return true;
+  });
+  if (filters.sort==='new') items.sort((a,b)=>b.createdAt-a.createdAt);
+  else if (filters.sort==='price_asc') items.sort((a,b)=>a.price-b.price);
+  else if (filters.sort==='price_desc') items.sort((a,b)=>b.price-a.price);
+  else if (filters.sort==='fast') items.sort((a,b)=>(a.installDays||999)-(b.installDays||999));
+  return items;
+}
+function updateFilter(key,val){ filters[key]=val; renderApp(); }
+function resetFilters(){ filters={type:'all',material:'all',search:'',priceMin:'',priceMax:'',maxDays:'all',sort:'new',onlyFav:false}; renderApp(); }
+
+function renderCatalog(){
+  const materials = [...new Set(listings.map(l=>l.material))];
+  const items = visibleListings();
+  return '<div class="filters">'+
+    '<input id="fltSearch" type="text" placeholder="'+esc(t('search_ph'))+'" value="'+esc(filters.search)+'" oninput="updateFilter(\'search\', this.value)" style="min-width:180px;">'+
+    '<select onchange="updateFilter(\'type\', this.value)">'+
+      '<option value="all" '+(filters.type==='all'?'selected':'')+'>'+t('type_all')+'</option>'+
+      '<option value="gate" '+(filters.type==='gate'?'selected':'')+'>'+t('type_gate')+'</option>'+
+      '<option value="wicket" '+(filters.type==='wicket'?'selected':'')+'>'+t('type_wicket')+'</option>'+
+    '</select>'+
+    '<select onchange="updateFilter(\'material\', this.value)">'+
+      '<option value="all">'+t('material_all')+'</option>'+
+      materials.map(m=>'<option value="'+esc(m)+'" '+(filters.material===m?'selected':'')+'>'+esc(m)+'</option>').join('')+
+    '</select>'+
+    '<input id="fltPriceMin" type="number" placeholder="'+esc(t('price_from'))+'" value="'+esc(filters.priceMin)+'" oninput="updateFilter(\'priceMin\', this.value)" style="width:110px;">'+
+    '<input id="fltPriceMax" type="number" placeholder="'+esc(t('price_to'))+'" value="'+esc(filters.priceMax)+'" oninput="updateFilter(\'priceMax\', this.value)" style="width:110px;">'+
+    '<select onchange="updateFilter(\'maxDays\', this.value)">'+
+      '<option value="all" '+(filters.maxDays==='all'?'selected':'')+'>'+t('days_all')+'</option>'+
+      '<option value="3" '+(filters.maxDays==='3'?'selected':'')+'>'+t('days_3')+'</option>'+
+      '<option value="7" '+(filters.maxDays==='7'?'selected':'')+'>'+t('days_7')+'</option>'+
+      '<option value="14" '+(filters.maxDays==='14'?'selected':'')+'>'+t('days_14')+'</option>'+
+      '<option value="30" '+(filters.maxDays==='30'?'selected':'')+'>'+t('days_30')+'</option>'+
+    '</select>'+
+    '<select onchange="updateFilter(\'sort\', this.value)">'+
+      '<option value="new" '+(filters.sort==='new'?'selected':'')+'>'+t('sort_new')+'</option>'+
+      '<option value="price_asc" '+(filters.sort==='price_asc'?'selected':'')+'>'+t('sort_price_asc')+'</option>'+
+      '<option value="price_desc" '+(filters.sort==='price_desc'?'selected':'')+'>'+t('sort_price_desc')+'</option>'+
+      '<option value="fast" '+(filters.sort==='fast'?'selected':'')+'>'+t('sort_fast')+'</option>'+
+    '</select>'+
+    '<button class="btn btn-ghost" onclick="resetFilters()">'+t('reset')+'</button>'+
+    '<button class="btn '+(filters.onlyFav?'btn-solid':'')+'" onclick="updateFilter(\'onlyFav\', !filters.onlyFav)">★ '+t('fav_only')+(favorites.size?' ('+favorites.size+')':'')+'</button>'+
+    '<span class="hint" style="margin-left:auto;">'+t('found')+': '+items.length+'</span>'+
+  '</div>'+
+  (items.length===0 ? '<div class="empty">'+(filters.onlyFav?t('fav_empty'):t('empty_catalog'))+'</div>' :
+    '<div class="grid">'+items.map(cardHtml).join('')+'</div>');
+}
+
+function cardHtml(l){
+  const isFav = favorites.has(l.id);
+  return '<div class="card">'+
+    '<div class="card-photo">'+
+      (l.photoUrl ? '<img src="'+esc(l.photoUrl)+'" alt="'+esc(l.title)+'">' : gateGlyph())+
+      '<span class="type-tag">'+(l.type==='gate'?t('type_gate_s'):t('type_wicket_s'))+'</span>'+
+      '<button class="fav-btn '+(isFav?'active':'')+'" title="'+(isFav?t('fav_remove'):t('fav_add'))+'" onclick="event.stopPropagation(); toggleFavorite(\''+l.id+'\')">'+(isFav?'★':'☆')+'</button>'+
+    '</div>'+
+    '<div class="card-body">'+
+      '<div class="card-title">'+esc(l.title)+'</div>'+
+      '<div class="specs">'+
+        '<span>'+l.width+'×'+l.height+' см</span>'+
+        '<span>'+esc(l.material)+'</span>'+
+        '<span>'+l.thickness+' мм</span>'+
+        '<span>⏱ '+(l.installDays ? l.installDays+' '+t('days_short') : t('install_ask'))+'</span>'+
+      '</div>'+
+      '<div class="price mono">'+money(l.price)+'</div>'+
+      '<div class="card-actions"><button class="btn btn-solid" onclick="openDetail(\''+l.id+'\')">'+t('details')+'</button></div>'+
+    '</div></div>';
+}
+
+function openDetail(id){ activeListingId=id; view='detail'; location.hash='l='+id; renderApp(); }
+
+function renderDetail(){
+  const l = listings.find(x=>x.id===activeListingId);
+  if (!l){ view='catalog'; return renderCatalog(); }
+  const isFav = favorites.has(l.id);
+  return '<div class="breadcrumb"><button onclick="goCatalog()">'+t('back')+'</button></div>'+
+  '<div class="detail-wrap">'+
+    '<div class="detail-photo">'+(l.photoUrl ? '<img src="'+esc(l.photoUrl)+'" alt="'+esc(l.title)+'">' : gateGlyph())+'</div>'+
+    '<div>'+
+      '<h2>'+esc(l.title)+'</h2>'+
+      '<div class="specs" style="margin-bottom:10px;">'+
+        '<span>'+(l.type==='gate'?t('type_gate_s'):t('type_wicket_s'))+'</span>'+
+        '<span>'+l.width+'×'+l.height+' см</span>'+
+        '<span>'+esc(l.material)+'</span>'+
+        '<span>'+l.thickness+' мм</span>'+
+        '<span>'+t('install_label')+': '+(l.installDays ? l.installDays+' '+t('days_short') : t('install_ask'))+'</span>'+
+      '</div>'+
+      '<div class="price mono" style="font-size:1.7rem;">'+money(l.price)+'</div>'+
+      '<p style="color:var(--cream-dim);line-height:1.5;">'+esc(l.description||'')+'</p>'+
+      '<div class="hint">'+t('payment_title')+'</div>'+
+      '<div class="pay-opts">'+(l.payment||[]).map(p=>'<span>'+payLabel(p)+'</span>').join('')+'</div>'+
+      '<div class="form-actions">'+
+        '<a class="btn btn-solid" href="tel:'+esc((l.phone||'').replace(/\s+/g,''))+'">'+t('call')+': '+esc(l.phone||'—')+'</a>'+
+        '<button class="btn btn-ember" onclick="openOrderModal(\''+l.id+'\')">'+t('order_btn')+'</button>'+
+        '<button class="fav-btn-detail '+(isFav?'active':'')+'" onclick="toggleFavorite(\''+l.id+'\')">'+(isFav?'★ ':'☆ ')+(isFav?t('fav_remove'):t('fav_add'))+'</button>'+
+      '</div>'+
+      '<button class="btn btn-ghost" style="margin-top:12px;" onclick="copyLink(\''+l.id+'\')">'+t('copy_link')+'</button>'+
+    '</div>'+
+  '</div>';
+}
+
+function copyLink(id){
+  const url = location.href.split('#')[0] + '#l=' + id;
+  navigator.clipboard?.writeText(url).then(()=>toast(t('link_copied'))).catch(()=>toast(url));
+}
+
+/* ---------------- order modal ---------------- */
+function openOrderModal(listingId){
+  const bg = document.createElement('div'); bg.className='modal-bg'; bg.id='orderModalBg';
+  bg.innerHTML =
+    '<div class="modal">'+
+      '<button class="close-x" onclick="closeModal()">✕</button>'+
+      '<h3>'+t('order_modal_title')+'</h3>'+
+      '<div class="form-grid one">'+
+        '<label>'+t('order_name')+'<input id="ordName" placeholder="'+esc(t('order_name_ph'))+'"></label>'+
+        '<label>'+t('order_phone')+'<input id="ordPhone" placeholder="+7 ..."></label>'+
+        '<label>'+t('order_comment')+'<textarea id="ordComment" placeholder="'+esc(t('order_comment_ph'))+'"></textarea></label>'+
+      '</div>'+
+      '<div id="ordErr" class="err"></div>'+
+      '<div class="form-actions">'+
+        '<button class="btn btn-solid" onclick="submitOrder(\''+listingId+'\')">'+t('order_send')+'</button>'+
+        '<button class="btn btn-ghost" onclick="closeModal()">'+t('cancel')+'</button>'+
+      '</div>'+
+    '</div>';
+  document.body.appendChild(bg);
+}
+function closeModal(){ document.getElementById('orderModalBg')?.remove(); }
+
+async function submitOrder(listingId){
+  const name = document.getElementById('ordName').value.trim();
+  const phone = document.getElementById('ordPhone').value.trim();
+  const comment = document.getElementById('ordComment').value.trim();
+  if (!name || !phone){ document.getElementById('ordErr').textContent=t('order_err_required'); return; }
+  const { error } = await sb.from('orders').insert({ listing_id:listingId, name, phone, comment });
+  if (error){ document.getElementById('ordErr').textContent = error.message; return; }
+  closeModal(); toast(t('order_sent'));
+}
+
+/* ---------------- LOGIN ---------------- */
+function renderLogin(){
+  return '<div class="panel" style="max-width:420px;margin:30px auto;">'+
+    '<h2>'+t('login_title')+'</h2>'+
+    '<div class="form-grid one">'+
+      '<label>'+t('login_user')+'<input id="loginUser" placeholder="'+t('login_user')+'"></label>'+
+      '<label>'+t('login_pass')+'<input id="loginPass" type="password" placeholder="'+t('login_pass')+'"></label>'+
+    '</div>'+
+    '<div id="loginErr" class="err"></div>'+
+    '<div class="form-actions">'+
+      '<button class="btn btn-solid" onclick="doLogin()">'+t('login_submit')+'</button>'+
+      '<button class="btn btn-ghost" onclick="goCatalog()">'+t('cancel')+'</button>'+
+    '</div></div>';
+}
+
+async function doLogin(){
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const email = u+'@admins.local';
+  const { data, error } = await sb.auth.signInWithPassword({ email, password:p });
+  if (error){ document.getElementById('loginErr').textContent=t('login_err'); return; }
+  const { data:profile } = await sb.from('profiles').select('*').eq('id', data.user.id).single();
+  if (!profile){ document.getElementById('loginErr').textContent=t('login_err_profile'); return; }
+  currentUser = { id:profile.id, role:profile.role, name:profile.name, phone:profile.phone };
+  await goPanel();
+}
+
+/* ---------------- SUPER ADMIN PANEL ---------------- */
+function renderSuper(){
+  return '<div class="panel">'+
+    '<h2>'+t('super_title')+' <span class="super-badge">SUPER</span></h2>'+
+    '<div class="form-grid">'+
+      '<label>'+t('super_new_user')+'<input id="newAdminUser" placeholder="master1"></label>'+
+      '<label>'+t('super_new_pass')+'<input id="newAdminPass"></label>'+
+      '<label>'+t('super_new_name')+'<input id="newAdminName"></label>'+
+      '<label>'+t('super_new_phone')+'<input id="newAdminPhone" placeholder="+7 ..."></label>'+
+    '</div>'+
+    '<div id="adminErr" class="err"></div>'+
+    '<div class="form-actions"><button class="btn btn-solid" onclick="addAdmin()">'+t('super_add')+'</button></div>'+
+  '</div>'+
+  '<div class="panel"><h3 style="margin-top:0;">'+t('super_list_title')+'</h3>'+
+    (admins.length===0 ? '<div class="empty">'+t('super_empty')+'</div>' :
+    '<table><tr><th>'+t('th_name')+'</th><th>'+t('th_phone')+'</th><th>'+t('th_count')+'</th><th></th></tr>'+
+      admins.map(a=>'<tr><td>'+esc(a.name)+'</td><td>'+esc(a.phone||'—')+'</td><td>'+
+        listings.filter(l=>l.adminId===a.id).length+'</td>'+
+        '<td class="row-actions"><button class="btn btn-ember" onclick="removeAdmin(\''+a.id+'\')">'+t('delete')+'</button></td></tr>').join('')+
+    '</table>')+
+  '</div>'+
+  '<div class="panel"><h3 style="margin-top:0;">'+t('super_all_listings')+'</h3>'+renderListingsTable(listings, true)+'</div>'+
+  '<div class="panel"><h3 style="margin-top:0;">'+t('super_all_orders')+'</h3>'+renderOrdersTable(orders)+'</div>';
+}
+
+async function addAdmin(){
+  const username = document.getElementById('newAdminUser').value.trim();
+  const password = document.getElementById('newAdminPass').value;
+  const name = document.getElementById('newAdminName').value.trim();
+  const phone = document.getElementById('newAdminPhone').value.trim();
+  if (!username || !password || !name){ document.getElementById('adminErr').textContent=t('super_err_required'); return; }
+  const { data:{ session } } = await sb.auth.getSession();
+  const res = await fetch(FN_URL+'/create-admin', {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+session.access_token, 'apikey': SUPABASE_ANON_KEY },
+    body: JSON.stringify({ username, password, name, phone })
+  });
+  const out = await res.json();
+  if (!res.ok){ document.getElementById('adminErr').textContent = out.error || 'Error'; return; }
+  toast(t('super_added')); await loadAdmins(); renderApp();
+}
+
+async function removeAdmin(id){
+  if (!confirm(t('confirm_delete_admin'))) return;
+  const { data:{ session } } = await sb.auth.getSession();
+  const res = await fetch(FN_URL+'/delete-admin', {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+session.access_token, 'apikey': SUPABASE_ANON_KEY },
+    body: JSON.stringify({ adminId:id })
+  });
+  const out = await res.json();
+  if (!res.ok){ toast(out.error || 'Error'); return; }
+  await loadAdmins(); renderApp();
+}
+
+/* ---------------- ADMIN PANEL ---------------- */
+function myListings(){ return listings.filter(l=>l.adminId===currentUser.id); }
+function myOrders(){
+  const ids = new Set(myListings().map(l=>l.id));
+  return orders.filter(o=>ids.has(o.listing_id));
+}
+function renderAdmin(){
+  return '<div class="panel"><h2>'+t('admin_add_title')+'</h2>'+listingFormHtml()+'</div>'+
+  '<div class="panel"><h3 style="margin-top:0;">'+t('admin_my_listings')+'</h3>'+renderListingsTable(myListings(), false)+'</div>'+
+  '<div class="panel"><h3 style="margin-top:0;">'+t('admin_my_orders')+'</h3>'+renderOrdersTable(myOrders())+'</div>';
+}
+
+function listingFormHtml(editing){
+  const l = editing || {};
+  const pay = l.payment || [];
+  const payKeys = ['kaspi','cash','prepay','postpay'];
+  return '<div class="form-grid">'+
+    '<label>'+t('f_type')+'<select id="lfType">'+
+      '<option value="gate" '+(l.type==='gate'?'selected':'')+'>'+t('type_gate_s')+'</option>'+
+      '<option value="wicket" '+(l.type==='wicket'?'selected':'')+'>'+t('type_wicket_s')+'</option>'+
+    '</select></label>'+
+    '<label>'+t('f_title')+'<input id="lfTitle" value="'+esc(l.title||'')+'" placeholder="'+esc(t('f_title_ph'))+'"></label>'+
+    '<label>'+t('f_width')+'<input id="lfWidth" type="number" value="'+(l.width||'')+'" placeholder="400"></label>'+
+    '<label>'+t('f_height')+'<input id="lfHeight" type="number" value="'+(l.height||'')+'" placeholder="200"></label>'+
+    '<label>'+t('f_material')+'<input id="lfMaterial" value="'+esc(l.material||'')+'" placeholder="'+esc(t('f_material_ph'))+'"></label>'+
+    '<label>'+t('f_thickness')+'<input id="lfThickness" type="number" step="0.1" value="'+(l.thickness||'')+'" placeholder="2"></label>'+
+    '<label>'+t('f_price')+'<input id="lfPrice" type="number" value="'+(l.price||'')+'" placeholder="485000"></label>'+
+    '<label>'+t('f_days')+'<input id="lfDays" type="number" value="'+(l.installDays||'')+'" placeholder="14"></label>'+
+    '<label>'+t('f_phone')+'<input id="lfPhone" value="'+esc(l.phone||currentUser.phone||'')+'" placeholder="+7 ..."></label>'+
+    '<label>'+t('f_photo')+'<input id="lfPhoto" value="'+esc(l.photoUrl||'')+'" placeholder="https://..."></label>'+
+  '</div>'+
+  '<label style="margin-top:10px;">'+t('f_desc')+'<textarea id="lfDesc">'+esc(l.description||'')+'</textarea></label>'+
+  '<div class="hint" style="margin-top:12px;">'+t('f_payment_title')+'</div>'+
+  '<div class="checks">'+payKeys.map(k=>'<label><input type="checkbox" value="'+k+'" '+(pay.includes(k)?'checked':'')+' class="payChk"> '+payLabel(k)+'</label>').join('')+'</div>'+
+  '<div id="lfErr" class="err"></div>'+
+  '<div class="form-actions">'+
+    '<button class="btn btn-solid" onclick="saveListing('+(editing?"'"+l.id+"'":'null')+')">'+(editing?t('f_save'):t('f_publish'))+'</button>'+
+    (editing?'<button class="btn btn-ghost" onclick="renderApp()">'+t('cancel')+'</button>':'')+
+  '</div>';
+}
+
+async function saveListing(id){
+  const title = document.getElementById('lfTitle').value.trim();
+  const width = Number(document.getElementById('lfWidth').value);
+  const height = Number(document.getElementById('lfHeight').value);
+  const material = document.getElementById('lfMaterial').value.trim();
+  const thickness = Number(document.getElementById('lfThickness').value);
+  const price = Number(document.getElementById('lfPrice').value);
+  const installDays = Number(document.getElementById('lfDays').value) || null;
+  const phone = document.getElementById('lfPhone').value.trim();
+  const photoUrl = document.getElementById('lfPhoto').value.trim();
+  const description = document.getElementById('lfDesc').value.trim();
+  const type = document.getElementById('lfType').value;
+  const payment = [...document.querySelectorAll('.payChk')].filter(c=>c.checked).map(c=>c.value);
+
+  if (!title || !width || !height || !material || !price || !phone){
+    document.getElementById('lfErr').textContent = t('f_err_required'); return;
+  }
+  const row = { type, title, width, height, material, thickness, price, install_days: installDays, payment, photo_url: photoUrl, description, phone };
+  let error;
+  if (id){ ({ error } = await sb.from('listings').update(row).eq('id', id)); }
+  else { row.admin_id = currentUser.id; ({ error } = await sb.from('listings').insert(row)); }
+  if (error){ document.getElementById('lfErr').textContent = error.message; return; }
+  toast(id ? t('f_saved') : t('f_published'));
+  await loadListings(); renderApp();
+}
+
+function editListing(id){
+  const l = listings.find(x=>x.id===id);
+  if (!l || l.adminId !== currentUser.id) return;
+  document.getElementById('app').innerHTML = '<div class="panel"><h2>'+t('f_save')+'</h2>'+listingFormHtml(l)+'</div>' + document.getElementById('app').innerHTML;
+}
+
+async function deleteListing(id){
+  const l = listings.find(x=>x.id===id);
+  if (!l) return;
+  if (currentUser.role==='admin' && l.adminId!==currentUser.id) return;
+  if (!confirm(t('confirm_delete_listing'))) return;
+  const { error } = await sb.from('listings').delete().eq('id', id);
+  if (error){ toast(error.message); return; }
+  await loadListings(); renderApp();
+}
+
+function renderListingsTable(items, showOwner){
+  if (items.length===0) return '<div class="empty">'+t('empty_listings')+'</div>';
+  return '<table><tr><th>'+t('th_listing')+'</th><th>'+t('th_type')+'</th><th>'+t('th_size')+'</th><th>'+t('th_price')+'</th><th>'+t('th_days')+'</th>'+
+    (showOwner?'<th>'+t('th_master')+'</th>':'')+'<th></th></tr>'+
+    items.map(l=>{
+      const ownerName = showOwner ? (admins.find(a=>a.id===l.adminId)?.name || '—') : '';
+      return '<tr><td>'+esc(l.title)+'</td><td>'+(l.type==='gate'?t('type_gate_s'):t('type_wicket_s'))+'</td>'+
+        '<td>'+l.width+'×'+l.height+'</td><td class="mono">'+money(l.price)+'</td>'+
+        '<td>'+(l.installDays?l.installDays+' '+t('days_short'):'—')+'</td>'+
+        (showOwner?'<td>'+esc(ownerName)+'</td>':'')+
+        '<td class="row-actions">'+
+          '<button class="btn" onclick="copyLink(\''+l.id+'\')">'+t('btn_link')+'</button>'+
+          (currentUser.role==='admin'?'<button class="btn" onclick="editListing(\''+l.id+'\')">'+t('btn_edit')+'</button>':'')+
+          '<button class="btn btn-ember" onclick="deleteListing(\''+l.id+'\')">'+t('delete')+'</button>'+
+        '</td></tr>';
+    }).join('')+
+  '</table>';
+}
+
+function renderOrdersTable(items){
+  if (items.length===0) return '<div class="empty">'+t('empty_orders')+'</div>';
+  return '<table><tr><th>'+t('th_order_listing')+'</th><th>'+t('th_order_name')+'</th><th>'+t('th_order_phone')+'</th><th>'+t('th_order_comment')+'</th><th>'+t('th_order_status')+'</th><th></th></tr>'+
+    [...items].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).map(o=>{
+      const l = listings.find(x=>x.id===o.listing_id);
+      const statusLabel = o.status==='new'?t('status_new'):o.status==='processing'?t('status_processing'):t('status_done');
+      return '<tr><td>'+esc(l?l.title:t('deleted_label'))+'</td><td>'+esc(o.name)+'</td><td class="mono">'+esc(o.phone)+'</td>'+
+        '<td>'+esc(o.comment||'—')+'</td><td><span class="status '+o.status+'">'+statusLabel+'</span></td>'+
+        '<td class="row-actions">'+
+          (o.status!=='processing'?'<button class="btn" onclick="setOrderStatus(\''+o.id+'\',\'processing\')">'+t('to_work')+'</button>':'')+
+          (o.status!=='done'?'<button class="btn" onclick="setOrderStatus(\''+o.id+'\',\'done\')">'+t('done')+'</button>':'')+
+        '</td></tr>';
+    }).join('')+
+  '</table>';
+}
+
+async function setOrderStatus(id, status){
+  const { error } = await sb.from('orders').update({ status }).eq('id', id);
+  if (error){ toast(error.message); return; }
+  await loadMyOrders(); renderApp();
+}
+
+/* ---------------- main render (сохраняет фокус полей при перерисовке) ---------------- */
+function renderApp(){
+  renderNav();
+  const app = document.getElementById('app');
+  const active = document.activeElement;
+  const activeId = active && active.id ? active.id : null;
+  const selStart = active && 'selectionStart' in active ? active.selectionStart : null;
+  const selEnd = active && 'selectionEnd' in active ? active.selectionEnd : null;
+
+  if (view==='catalog') app.innerHTML = renderCatalog();
+  else if (view==='detail') app.innerHTML = renderDetail();
+  else if (view==='login') app.innerHTML = renderLogin();
+  else if (view==='super' && currentUser?.role==='super') app.innerHTML = renderSuper();
+  else if (view==='admin' && currentUser?.role==='admin') app.innerHTML = renderAdmin();
+  else { view='catalog'; app.innerHTML = renderCatalog(); }
+
+  if (activeId){
+    const el = document.getElementById(activeId);
+    if (el){ el.focus(); if (selStart!==null && el.setSelectionRange){ try{ el.setSelectionRange(selStart, selEnd); }catch(e){} } }
+  }
+}
+
+(async function init(){
+  document.documentElement.lang = LANG;
+  await restoreSession();
+  await loadListings();
+  if (currentUser){
+    if (currentUser.role==='super'){ await loadAdmins(); await loadMyOrders(); view='super'; }
+    else { await loadMyOrders(); view='admin'; }
+  }
+  checkHash();
+  renderApp();
+})();
+</script>
+</body>
+</html>
