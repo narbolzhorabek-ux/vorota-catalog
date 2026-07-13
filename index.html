@@ -357,12 +357,24 @@ function visibleListings(){
   else if (filters.sort==='fast') items.sort((a,b)=>(a.installDays||999)-(b.installDays||999));
   return items;
 }
-function updateFilter(key,val){ filters[key]=val; renderApp(); }
+function updateFilter(key,val){
+  filters[key]=val;
+  const results = document.getElementById('catalogResults');
+  if (results) results.innerHTML = renderResults();
+  const favBtn = document.getElementById('favOnlyBtn');
+  if (favBtn) favBtn.classList.toggle('btn-solid', !!filters.onlyFav);
+}
 function resetFilters(){ filters={type:'all',material:'all',search:'',priceMin:'',priceMax:'',maxDays:'all',sort:'new',onlyFav:false}; renderApp(); }
+
+function renderResults(){
+  const items = visibleListings();
+  return '<div class="hint" style="text-align:right;margin-bottom:10px;">'+t('found')+': '+items.length+'</div>'+
+    (items.length===0 ? '<div class="empty">'+(filters.onlyFav?t('fav_empty'):t('empty_catalog'))+'</div>' :
+      '<div class="grid">'+items.map(cardHtml).join('')+'</div>');
+}
 
 function renderCatalog(){
   const materials = [...new Set(listings.map(l=>l.material))];
-  const items = visibleListings();
   return '<div class="filters">'+
     '<input id="fltSearch" type="text" placeholder="'+esc(t('search_ph'))+'" value="'+esc(filters.search)+'" oninput="updateFilter(\'search\', this.value)" style="min-width:180px;">'+
     '<select onchange="updateFilter(\'type\', this.value)">'+
@@ -374,8 +386,8 @@ function renderCatalog(){
       '<option value="all">'+t('material_all')+'</option>'+
       materials.map(m=>'<option value="'+esc(m)+'" '+(filters.material===m?'selected':'')+'>'+esc(m)+'</option>').join('')+
     '</select>'+
-    '<input id="fltPriceMin" type="number" placeholder="'+esc(t('price_from'))+'" value="'+esc(filters.priceMin)+'" oninput="updateFilter(\'priceMin\', this.value)" style="width:110px;">'+
-    '<input id="fltPriceMax" type="number" placeholder="'+esc(t('price_to'))+'" value="'+esc(filters.priceMax)+'" oninput="updateFilter(\'priceMax\', this.value)" style="width:110px;">'+
+    '<input id="fltPriceMin" type="number" inputmode="numeric" placeholder="'+esc(t('price_from'))+'" value="'+esc(filters.priceMin)+'" oninput="updateFilter(\'priceMin\', this.value)" style="width:110px;">'+
+    '<input id="fltPriceMax" type="number" inputmode="numeric" placeholder="'+esc(t('price_to'))+'" value="'+esc(filters.priceMax)+'" oninput="updateFilter(\'priceMax\', this.value)" style="width:110px;">'+
     '<select onchange="updateFilter(\'maxDays\', this.value)">'+
       '<option value="all" '+(filters.maxDays==='all'?'selected':'')+'>'+t('days_all')+'</option>'+
       '<option value="3" '+(filters.maxDays==='3'?'selected':'')+'>'+t('days_3')+'</option>'+
@@ -390,11 +402,9 @@ function renderCatalog(){
       '<option value="fast" '+(filters.sort==='fast'?'selected':'')+'>'+t('sort_fast')+'</option>'+
     '</select>'+
     '<button class="btn btn-ghost" onclick="resetFilters()">'+t('reset')+'</button>'+
-    '<button class="btn '+(filters.onlyFav?'btn-solid':'')+'" onclick="updateFilter(\'onlyFav\', !filters.onlyFav)">★ '+t('fav_only')+(favorites.size?' ('+favorites.size+')':'')+'</button>'+
-    '<span class="hint" style="margin-left:auto;">'+t('found')+': '+items.length+'</span>'+
+    '<button id="favOnlyBtn" class="btn '+(filters.onlyFav?'btn-solid':'')+'" onclick="updateFilter(\'onlyFav\', !filters.onlyFav)">★ '+t('fav_only')+(favorites.size?' ('+favorites.size+')':'')+'</button>'+
   '</div>'+
-  (items.length===0 ? '<div class="empty">'+(filters.onlyFav?t('fav_empty'):t('empty_catalog'))+'</div>' :
-    '<div class="grid">'+items.map(cardHtml).join('')+'</div>');
+  '<div id="catalogResults">'+renderResults()+'</div>';
 }
 
 function cardHtml(l){
