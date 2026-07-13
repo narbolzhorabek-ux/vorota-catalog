@@ -74,6 +74,8 @@
   .err{color:var(--ember-bright);font-size:.82rem;margin-top:6px;}
   .ok-msg{color:var(--ok);font-size:.82rem;margin-top:6px;}
   table{width:100%;border-collapse:collapse;font-size:.85rem;}
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px;}
+  .table-wrap table{min-width:640px;}
   th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);}
   th{color:var(--brass-dim);font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;}
   .status{padding:2px 9px;border-radius:2px;font-size:.72rem;border:1px solid var(--line);}
@@ -99,6 +101,24 @@
   .super-badge{font-size:.7rem;color:var(--ember-bright);border:1px solid var(--ember);padding:2px 8px;border-radius:2px;margin-left:8px;}
   .loading{text-align:center;padding:60px;color:var(--brass-dim);}
   footer{text-align:center;padding:26px 20px 40px;color:var(--brass-dim);font-size:.75rem;}
+
+  @media (max-width:640px){
+    header{padding:16px 16px 0;}
+    main{padding:6px 16px 60px;}
+    .brand .mark{font-size:1.35rem;}
+    .brand .tag{font-size:.68rem;}
+    nav{gap:8px;width:100%;}
+    nav .btn{flex:1 1 auto;padding:11px 10px;font-size:.8rem;text-align:center;}
+    .filters{gap:8px;}
+    .filters input, .filters select{flex:1 1 140px;padding:11px 10px;}
+    #fltPriceMin, #fltPriceMax{width:auto;min-width:100px;}
+    .card-actions .btn, .form-actions .btn{padding:12px 10px;font-size:.85rem;}
+    .row-actions .btn{padding:8px 12px;font-size:.78rem;}
+    .panel{padding:16px 14px;}
+    .detail-wrap{gap:16px;}
+    .form-actions{flex-direction:column;}
+    .form-actions .btn{width:100%;}
+  }
 </style>
 </head>
 <body>
@@ -539,11 +559,11 @@ function renderSuper(){
   '</div>'+
   '<div class="panel"><h3 style="margin-top:0;">'+t('super_list_title')+'</h3>'+
     (admins.length===0 ? '<div class="empty">'+t('super_empty')+'</div>' :
-    '<table><tr><th>'+t('th_name')+'</th><th>'+t('th_phone')+'</th><th>'+t('th_count')+'</th><th></th></tr>'+
+    '<div class="table-wrap"><table><tr><th>'+t('th_name')+'</th><th>'+t('th_phone')+'</th><th>'+t('th_count')+'</th><th></th></tr>'+
       admins.map(a=>'<tr><td>'+esc(a.name)+'</td><td>'+esc(a.phone||'—')+'</td><td>'+
         listings.filter(l=>l.adminId===a.id).length+'</td>'+
         '<td class="row-actions"><button class="btn btn-ember" onclick="removeAdmin(\''+a.id+'\')">'+t('delete')+'</button></td></tr>').join('')+
-    '</table>')+
+    '</table></div>')+
   '</div>'+
   '<div class="panel"><h3 style="margin-top:0;">'+t('super_all_listings')+'</h3>'+renderListingsTable(listings, true)+'</div>'+
   '<div class="panel"><h3 style="margin-top:0;">'+t('super_all_orders')+'</h3>'+renderOrdersTable(orders)+'</div>';
@@ -664,7 +684,7 @@ async function deleteListing(id){
 
 function renderListingsTable(items, showOwner){
   if (items.length===0) return '<div class="empty">'+t('empty_listings')+'</div>';
-  return '<table><tr><th>'+t('th_listing')+'</th><th>'+t('th_type')+'</th><th>'+t('th_size')+'</th><th>'+t('th_price')+'</th><th>'+t('th_days')+'</th>'+
+  return '<div class="table-wrap"><table><tr><th>'+t('th_listing')+'</th><th>'+t('th_type')+'</th><th>'+t('th_size')+'</th><th>'+t('th_price')+'</th><th>'+t('th_days')+'</th>'+
     (showOwner?'<th>'+t('th_master')+'</th>':'')+'<th></th></tr>'+
     items.map(l=>{
       const ownerName = showOwner ? (admins.find(a=>a.id===l.adminId)?.name || '—') : '';
@@ -678,12 +698,12 @@ function renderListingsTable(items, showOwner){
           '<button class="btn btn-ember" onclick="deleteListing(\''+l.id+'\')">'+t('delete')+'</button>'+
         '</td></tr>';
     }).join('')+
-  '</table>';
+  '</table></div>';
 }
 
 function renderOrdersTable(items){
   if (items.length===0) return '<div class="empty">'+t('empty_orders')+'</div>';
-  return '<table><tr><th>'+t('th_order_listing')+'</th><th>'+t('th_order_name')+'</th><th>'+t('th_order_phone')+'</th><th>'+t('th_order_comment')+'</th><th>'+t('th_order_status')+'</th><th></th></tr>'+
+  return '<div class="table-wrap"><table><tr><th>'+t('th_order_listing')+'</th><th>'+t('th_order_name')+'</th><th>'+t('th_order_phone')+'</th><th>'+t('th_order_comment')+'</th><th>'+t('th_order_status')+'</th><th></th></tr>'+
     [...items].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).map(o=>{
       const l = listings.find(x=>x.id===o.listing_id);
       const statusLabel = o.status==='new'?t('status_new'):o.status==='processing'?t('status_processing'):t('status_done');
@@ -694,7 +714,7 @@ function renderOrdersTable(items){
           (o.status!=='done'?'<button class="btn" onclick="setOrderStatus(\''+o.id+'\',\'done\')">'+t('done')+'</button>':'')+
         '</td></tr>';
     }).join('')+
-  '</table>';
+  '</table></div>';
 }
 
 async function setOrderStatus(id, status){
