@@ -145,7 +145,7 @@
 const SUPABASE_URL = 'https://abqfruqdmwhvyfxvljxh.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_3CcgPMVYECq6aAb4Ik_TGw_6hVXe_Gb';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-const FN_URL = SUPABASE_URL.replace('.supabase.co', '.functions.supabase.co');
+const FN_URL = SUPABASE_URL + '/functions/v1';
 
 /* =========================================================
    ПЕРЕВОДЫ (RU / KZ)
@@ -179,7 +179,11 @@ const i18n = {
     admin_add_title:'Добавить объявление', admin_my_listings:'Мои объявления', admin_my_orders:'Заявки по моим объявлениям',
     f_type:'Тип', f_title:'Название', f_title_ph:'например Ворота «Классик»', f_width:'Ширина, см', f_height:'Высота, см',
     f_material:'Материал', f_material_ph:'Металл, ковка...', f_thickness:'Толщина металла, мм', f_price:'Цена, ₸',
-    f_days:'Срок изготовления, дней', f_phone:'Телефон для связи', f_photo:'Ссылка на фото (необязательно)',
+    f_days:'Срок изготовления, дней', f_phone:'Телефон для связи', f_photo:'Фото объявления',
+    f_photo_hint:'Выберите фото из галереи телефона или компьютера — загрузится автоматически.',
+    f_photo_url:'Ссылка на фото (заполнится сама после загрузки, можно вписать свою)',
+    photo_uploading:'Загружаю фото...', photo_uploaded:'Фото загружено',
+    photo_upload_error:'Ошибка загрузки фото', photo_too_big:'Файл больше 5 МБ — выберите файл поменьше',
     f_desc:'Описание', f_payment_title:'Варианты оплаты', f_publish:'Опубликовать', f_save:'Сохранить изменения',
     f_err_required:'Заполните название, размеры, материал, цену и телефон', f_saved:'Изменения сохранены', f_published:'Объявление опубликовано',
     th_listing:'Название', th_type:'Тип', th_size:'Размер', th_price:'Цена', th_days:'Срок', th_master:'Мастер',
@@ -220,7 +224,11 @@ const i18n = {
     admin_add_title:'Хабарландыру қосу', admin_my_listings:'Менің хабарландыруларым', admin_my_orders:'Менің хабарландыруларым бойынша өтінімдер',
     f_type:'Түрі', f_title:'Атауы', f_title_ph:'мысалы Қақпа «Классик»', f_width:'Ені, см', f_height:'Биіктігі, см',
     f_material:'Материал', f_material_ph:'Металл, соғу...', f_thickness:'Металл қалыңдығы, мм', f_price:'Бағасы, ₸',
-    f_days:'Дайындалу мерзімі, күн', f_phone:'Байланыс телефоны', f_photo:'Фото сілтемесі (міндетті емес)',
+    f_days:'Дайындалу мерзімі, күн', f_phone:'Байланыс телефоны', f_photo:'Хабарландыру фотосы',
+    f_photo_hint:'Телефон немесе компьютер галереясынан фото таңдаңыз — өзі жүктеледі.',
+    f_photo_url:'Фото сілтемесі (жүктегеннен кейін өзі толады, өз сілтемеңізді де жазуға болады)',
+    photo_uploading:'Фото жүктелуде...', photo_uploaded:'Фото жүктелді',
+    photo_upload_error:'Фотоны жүктеу қатесі', photo_too_big:'Файл 5 МБ-тан үлкен — кішірек файл таңдаңыз',
     f_desc:'Сипаттама', f_payment_title:'Төлем түрлері', f_publish:'Жариялау', f_save:'Өзгерістерді сақтау',
     f_err_required:'Атауын, өлшемдерін, материалын, бағасын және телефонын толтырыңыз', f_saved:'Өзгерістер сақталды', f_published:'Хабарландыру жарияланды',
     th_listing:'Атауы', th_type:'Түрі', th_size:'Өлшемі', th_price:'Бағасы', th_days:'Мерзімі', th_master:'Шебер',
@@ -628,8 +636,15 @@ function listingFormHtml(editing){
     '<label>'+t('f_price')+'<input id="lfPrice" type="number" value="'+(l.price||'')+'" placeholder="485000"></label>'+
     '<label>'+t('f_days')+'<input id="lfDays" type="number" value="'+(l.installDays||'')+'" placeholder="14"></label>'+
     '<label>'+t('f_phone')+'<input id="lfPhone" value="'+esc(l.phone||currentUser.phone||'')+'" placeholder="+7 ..."></label>'+
-    '<label>'+t('f_photo')+'<input id="lfPhoto" value="'+esc(l.photoUrl||'')+'" placeholder="https://..."></label>'+
   '</div>'+
+  '<label style="margin-top:10px;">'+t('f_photo')+
+    '<input type="file" id="lfPhotoFile" accept="image/*" onchange="handlePhotoUpload(this)">'+
+    '<span class="hint">'+t('f_photo_hint')+'</span>'+
+  '</label>'+
+  '<div id="lfPhotoPreviewWrap" style="margin:8px 0;">'+
+    (l.photoUrl ? '<img id="lfPhotoPreview" src="'+esc(l.photoUrl)+'" style="max-width:180px;max-height:130px;border-radius:4px;border:1px solid var(--line);object-fit:cover;">' : '<span id="lfPhotoPreview"></span>')+
+  '</div>'+
+  '<label>'+t('f_photo_url')+'<input id="lfPhoto" value="'+esc(l.photoUrl||'')+'" placeholder="https://..." oninput="updatePhotoPreview()"></label>'+
   '<label style="margin-top:10px;">'+t('f_desc')+'<textarea id="lfDesc">'+esc(l.description||'')+'</textarea></label>'+
   '<div class="hint" style="margin-top:12px;">'+t('f_payment_title')+'</div>'+
   '<div class="checks">'+payKeys.map(k=>'<label><input type="checkbox" value="'+k+'" '+(pay.includes(k)?'checked':'')+' class="payChk"> '+payLabel(k)+'</label>').join('')+'</div>'+
@@ -638,6 +653,33 @@ function listingFormHtml(editing){
     '<button class="btn btn-solid" onclick="saveListing('+(editing?"'"+l.id+"'":'null')+')">'+(editing?t('f_save'):t('f_publish'))+'</button>'+
     (editing?'<button class="btn btn-ghost" onclick="renderApp()">'+t('cancel')+'</button>':'')+
   '</div>';
+}
+
+async function handlePhotoUpload(input){
+  const file = input.files && input.files[0];
+  if (!file) return;
+  if (file.size > 5*1024*1024){ toast(t('photo_too_big')); input.value=''; return; }
+  toast(t('photo_uploading'));
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+  const path = currentUser.id + '/' + Date.now() + '_' + safeName;
+  const { error } = await sb.storage.from('listing-photos').upload(path, file, { upsert:true, cacheControl:'3600' });
+  if (error){ toast(t('photo_upload_error') + ': ' + error.message); return; }
+  const { data: pub } = sb.storage.from('listing-photos').getPublicUrl(path);
+  const urlInput = document.getElementById('lfPhoto');
+  if (urlInput) urlInput.value = pub.publicUrl;
+  updatePhotoPreview();
+  toast(t('photo_uploaded'));
+}
+
+function updatePhotoPreview(){
+  const preview = document.getElementById('lfPhotoPreview');
+  if (!preview) return;
+  const val = (document.getElementById('lfPhoto') && document.getElementById('lfPhoto').value.trim()) || '';
+  if (val){
+    preview.outerHTML = '<img id="lfPhotoPreview" src="'+esc(val)+'" style="max-width:180px;max-height:130px;border-radius:4px;border:1px solid var(--line);object-fit:cover;">';
+  } else {
+    preview.outerHTML = '<span id="lfPhotoPreview"></span>';
+  }
 }
 
 async function saveListing(id){
